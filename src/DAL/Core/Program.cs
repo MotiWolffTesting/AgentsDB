@@ -1,24 +1,34 @@
 ﻿// Main program for the Eagle Eye Field Agent Management System
 // This program provides a menu-driven interface for managing field agents
-using EagleEye.Models;
-using EagleEye.DAL;
+using EagleEye.DAL.Database;
+using EagleEye.DAL.Interfaces;
+using EagleEye.DAL.Logging;
+using EagleEye.DAL.Models;
+using EagleEye.DAL.Repositories;
 
-namespace EagleEye
+namespace EagleEye.DAL.Core
 {
     class Program
     {
-        // Data Access Layer instance for database operations
-        private static AgentDAL _agentDAL = new AgentDAL();
+        private static IAgentRepository _agentRepo = null!;
+        private static ILogger _logger = null!;
+        private static DatabaseInitializer _dbInitializer = null!;
 
         static void Main(string[] args)
         {
+            // Initialize dependencies
+            IDatabaseConfig dbConfig = new DatabaseConfig();
+            _logger = new ConsoleLogger();
+            _agentRepo = new AgentDAL(dbConfig, _logger);
+            _dbInitializer = new DatabaseInitializer(dbConfig, _logger);
+
             Console.WriteLine("=== EAGLE EYE FIELD AGENT MANAGEMENT SYSTEM ===\n");
 
             try
             {
                 // Initialize database and ensure it's created
-                _agentDAL.EnsureDatabaseCreated();
-                Console.WriteLine("Database connection established.\n");
+                _dbInitializer.EnsureDatabaseCreated();
+                _logger.LogInfo("Database connection established.\n");
 
                 // Main program loop - continues until user chooses to exit
                 bool running = true;
@@ -55,14 +65,14 @@ namespace EagleEye
                             running = false;
                             break;
                         default:
-                            Console.WriteLine("\nInvalid choice. Please try again.");
+                            _logger.LogInfo("\nInvalid choice. Please try again.");
                             break;
                     }
 
                     // Pause and clear screen before next menu display
                     if (running)
                     {
-                        Console.WriteLine("\nPress any key to continue...");
+                        _logger.LogInfo("\nPress any key to continue...");
                         Console.ReadKey();
                         Console.Clear();
                     }
@@ -70,66 +80,66 @@ namespace EagleEye
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nApplication error: {ex.Message}");
+                _logger.LogError("Application error", ex);
             }
 
-            Console.WriteLine("\nThank you for using Eagle Eye. Press any key to exit...");
+            _logger.LogInfo("\nThank you for using Eagle Eye. Press any key to exit...");
             Console.ReadKey();
         }
 
         // Displays the main menu options
         static void DisplayMainMenu()
         {
-            Console.WriteLine("=== MAIN MENU ===");
-            Console.WriteLine("1. View All Agents");
-            Console.WriteLine("2. Add New Agent");
-            Console.WriteLine("3. Update Agent Location");
-            Console.WriteLine("4. Delete Agent");
-            Console.WriteLine("5. Search Agents");
-            Console.WriteLine("6. Status Report");
-            Console.WriteLine("7. Add Mission Count");
-            Console.WriteLine("0. Exit");
-            Console.Write("\nEnter your choice: ");
+            _logger.LogInfo("=== MAIN MENU ===");
+            _logger.LogInfo("1. View All Agents");
+            _logger.LogInfo("2. Add New Agent");
+            _logger.LogInfo("3. Update Agent Location");
+            _logger.LogInfo("4. Delete Agent");
+            _logger.LogInfo("5. Search Agents");
+            _logger.LogInfo("6. Status Report");
+            _logger.LogInfo("7. Add Mission Count");
+            _logger.LogInfo("0. Exit");
+            _logger.LogInfo("\nEnter your choice: ");
         }
 
         // Retrieves and displays all agents in the database
         static void DisplayAllAgents()
         {
-            Console.WriteLine("\n=== ALL AGENTS ===");
-            var agents = _agentDAL.GetAllAgents();
+            _logger.LogInfo("\n=== ALL AGENTS ===");
+            var agents = _agentRepo.GetAllAgents();
             if (agents.Count > 0)
             {
                 foreach (var agent in agents)
                 {
-                    Console.WriteLine($"  ID: {agent.Id} | {agent}");
+                    _logger.LogInfo($"  ID: {agent.Id} | {agent}");
                 }
             }
             else
             {
-                Console.WriteLine("No agents found in the database.");
+                _logger.LogInfo("No agents found in the database.");
             }
         }
 
         // Prompts user for agent details and adds a new agent to the database
         static void AddNewAgent()
         {
-            Console.WriteLine("\n=== ADD NEW AGENT ===");
-            
+            _logger.LogInfo("\n=== ADD NEW AGENT ===");
+
             var agent = new Agent();
-            
-            Console.Write("Enter Code Name: ");
+
+            _logger.LogInfo("Enter Code Name: ");
             agent.CodeName = Console.ReadLine() ?? "";
-            
-            Console.Write("Enter Real Name: ");
+
+            _logger.LogInfo("Enter Real Name: ");
             agent.RealName = Console.ReadLine() ?? "";
-            
-            Console.Write("Enter Location: ");
+
+            _logger.LogInfo("Enter Location: ");
             agent.Location = Console.ReadLine() ?? "";
-            
-            Console.Write("Enter Status (Active/Injured/Missing/Retired): ");
+
+            _logger.LogInfo("Enter Status (Active/Injured/Missing/Retired): ");
             agent.Status = Console.ReadLine() ?? "";
-            
-            Console.Write("Enter Missions Completed: ");
+
+            _logger.LogInfo("Enter Missions Completed: ");
             if (int.TryParse(Console.ReadLine(), out int missions))
             {
                 agent.MissionsCompleted = missions;
@@ -137,142 +147,142 @@ namespace EagleEye
 
             try
             {
-                _agentDAL.AddAgent(agent);
-                Console.WriteLine("\nAgent added successfully!");
+                _agentRepo.AddAgent(agent);
+                _logger.LogInfo("\nAgent added successfully!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError adding agent: {ex.Message}");
+                _logger.LogError("Error adding agent", ex);
             }
         }
 
         // Updates the location of an existing agent
         static void UpdateAgentLocation()
         {
-            Console.WriteLine("\n=== UPDATE AGENT LOCATION ===");
+            _logger.LogInfo("\n=== UPDATE AGENT LOCATION ===");
             DisplayAllAgents();
-            
-            Console.Write("\nEnter Agent ID to update: ");
+
+            _logger.LogInfo("\nEnter Agent ID to update: ");
             if (int.TryParse(Console.ReadLine(), out int agentId))
             {
-                Console.Write("Enter new location: ");
+                _logger.LogInfo("Enter new location: ");
                 string newLocation = Console.ReadLine() ?? "";
-                
+
                 try
                 {
-                    _agentDAL.UpdateAgentLocation(agentId, newLocation);
+                    _agentRepo.UpdateAgentLocation(agentId, newLocation);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"\nError updating location: {ex.Message}");
+                    _logger.LogError("Error updating location", ex);
                 }
             }
             else
             {
-                Console.WriteLine("\nInvalid Agent ID.");
+                _logger.LogInfo("\nInvalid Agent ID.");
             }
         }
 
         // Deletes an agent from the database
         static void DeleteAgent()
         {
-            Console.WriteLine("\n=== DELETE AGENT ===");
+            _logger.LogInfo("\n=== DELETE AGENT ===");
             DisplayAllAgents();
-            
-            Console.Write("\nEnter Agent ID to delete: ");
+
+            _logger.LogInfo("\nEnter Agent ID to delete: ");
             if (int.TryParse(Console.ReadLine(), out int agentId))
             {
                 try
                 {
-                    _agentDAL.DeleteAgent(agentId);
+                    _agentRepo.DeleteAgent(agentId);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"\nError deleting agent: {ex.Message}");
+                    _logger.LogError("Error deleting agent", ex);
                 }
             }
             else
             {
-                Console.WriteLine("\nInvalid Agent ID.");
+                _logger.LogInfo("\nInvalid Agent ID.");
             }
         }
 
         // Searches for agents by partial code name match
         static void SearchAgents()
         {
-            Console.WriteLine("\n=== SEARCH AGENTS ===");
-            Console.Write("Enter partial code name to search: ");
+            _logger.LogInfo("\n=== SEARCH AGENTS ===");
+            _logger.LogInfo("Enter partial code name to search: ");
             string searchTerm = Console.ReadLine() ?? "";
-            
+
             try
             {
-                var results = _agentDAL.SearchAgentsByCode(searchTerm);
+                var results = _agentRepo.SearchAgentsByCode(searchTerm);
                 if (results.Count > 0)
                 {
-                    Console.WriteLine("\nSearch Results:");
+                    _logger.LogInfo("\nSearch Results:");
                     foreach (var agent in results)
                     {
-                        Console.WriteLine($"  ID: {agent.Id} | {agent}");
+                        _logger.LogInfo($"  ID: {agent.Id} | {agent}");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("\nNo agents found matching the search term.");
+                    _logger.LogInfo("\nNo agents found matching the search term.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError searching agents: {ex.Message}");
+                _logger.LogError("Error searching agents", ex);
             }
         }
 
         // Displays a count of agents by their status
         static void DisplayStatusReport()
         {
-            Console.WriteLine("\n=== AGENT STATUS REPORT ===");
+            _logger.LogInfo("\n=== AGENT STATUS REPORT ===");
             try
             {
-                var statusCounts = _agentDAL.CountAgentsByStatus();
+                var statusCounts = _agentRepo.CountAgentsByStatus();
                 foreach (var kvp in statusCounts)
                 {
-                    Console.WriteLine($"  {kvp.Key}: {kvp.Value} agents");
+                    _logger.LogInfo($"  {kvp.Key}: {kvp.Value} agents");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError generating status report: {ex.Message}");
+                _logger.LogError("Error generating status report", ex);
             }
         }
 
         // Adds to an agent's completed mission count
         static void AddMissionCount()
         {
-            Console.WriteLine("\n=== ADD MISSION COUNT ===");
+            _logger.LogInfo("\n=== ADD MISSION COUNT ===");
             DisplayAllAgents();
-            
-            Console.Write("\nEnter Agent ID: ");
+
+            _logger.LogInfo("\nEnter Agent ID: ");
             if (int.TryParse(Console.ReadLine(), out int agentId))
             {
-                Console.Write("Enter number of missions to add: ");
+                _logger.LogInfo("Enter number of missions to add: ");
                 if (int.TryParse(Console.ReadLine(), out int missionsToAdd))
                 {
                     try
                     {
-                        _agentDAL.AddMissionCount(agentId, missionsToAdd);
+                        _agentRepo.AddMissionCount(agentId, missionsToAdd);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"\nError updating mission count: {ex.Message}");
+                        _logger.LogError("Error updating mission count", ex);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("\nInvalid number of missions.");
+                    _logger.LogInfo("\nInvalid number of missions.");
                 }
             }
             else
             {
-                Console.WriteLine("\nInvalid Agent ID.");
+                _logger.LogInfo("\nInvalid Agent ID.");
             }
         }
     }

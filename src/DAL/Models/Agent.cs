@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EagleEye.Models
+namespace EagleEye.DAL.Models
 {
     // Represents a field agent with their details and status
     public class Agent

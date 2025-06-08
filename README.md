@@ -1,51 +1,59 @@
 # Eagle Eye Field Agent Management System
 
-🪖 A secret military unit database system for managing field agents built with C# and PostgreSQL.
+A .NET-based data access layer for managing field agents in the Eagle Eye system.
 
 ## Project Structure
 
 ```
-EagleEye/
-├── Models/
-│   └── Agent.cs          # Agent model class
-├── DAL/
-│   └── AgentDAL.cs       # Data Access Layer
-├── Program.cs            # Main program
-└── README.md
+src/
+└── DAL/
+    ├── Core/                 # Application entry point and core logic
+    ├── Database/            # Database context and configuration
+    ├── Infrastructure/      # Infrastructure services
+    ├── Interfaces/          # Interface definitions
+    ├── Logging/             # Logging implementations
+    ├── Models/              # Domain models
+    └── Repositories/        # Data access implementations
 ```
 
-## Database Schema
+## Setup
 
-**Database:** `eagleeyedb`  
-**Table:** `agents`
+1. Create a `.env` file in the project root with the following content:
+```
+DATABASE_CONNECTION_STRING=Host=localhost;Database=eagleeye;Username=your_username;Password=your_password
+```
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | INT | AUTO_INCREMENT, PRIMARY KEY |
-| codename | VARCHAR(50) | NOT NULL, UNIQUE |
-| realname | VARCHAR(100) | NOT NULL |
-| location | VARCHAR(100) | NOT NULL |
-| status | VARCHAR(20) | NOT NULL |
-| missionscompleted | INT | DEFAULT 0 |
+2. Install dependencies:
+```bash
+dotnet restore
+```
 
-**Valid Status Values:** "Active", "Injured", "Missing", "Retired"
+3. Run the application:
+```bash
+dotnet run
+```
 
-## Setup Instructions
+## Architecture
 
-1. **Install NuGet Packages:**
-   ```bash
-   dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
-   dotnet add package Microsoft.EntityFrameworkCore.Design
-   dotnet add package Microsoft.EntityFrameworkCore.Tools
-   ```
+The project follows SOLID principles and clean architecture:
 
-2. **Configure Database Connection:**
-   - Update the connection string in `DAL/AgentDAL.cs`
-   - Replace: `Host=localhost;Database=eagleeyedb;Username=postgres;Password=your_password`
+- **Single Responsibility Principle**: Each class has a single responsibility
+- **Open/Closed Principle**: Components are open for extension but closed for modification
+- **Interface Segregation**: Interfaces are specific to client needs
+- **Dependency Inversion**: High-level modules depend on abstractions
 
-3. **Create Database:**
-   ```sql
-   CREATE DATABASE eagleeyedb;
-   ```
+## Components
 
-4
+- **Models**: Domain entities representing field agents
+- **Interfaces**: Contracts for data access and services
+- **Repositories**: Implementation of data access patterns
+- **Database**: Entity Framework context and configuration
+- **Logging**: Logging service implementations
+- **Core**: Application entry point and business logic
+
+## Dependencies
+
+- .NET 7.0
+- Entity Framework Core
+- Npgsql (PostgreSQL provider)
+- DotNetEnv (Environment variable management)

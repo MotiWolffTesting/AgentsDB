@@ -8,10 +8,10 @@ namespace EagleEye.DAL.Repositories
     // Data Access Layer class for agent operations
     public class AgentDAL : IAgentRepository
     {
-        private readonly IDatabaseConfig _config;
-        private readonly ILogger _logger;
+        private readonly DatabaseConfig _config;
+        private readonly IAppLogger _logger;
 
-        public AgentDAL(IDatabaseConfig config, ILogger logger)
+        public AgentDAL(DatabaseConfig config, IAppLogger logger)
         {
             _config = config;
             _logger = logger;

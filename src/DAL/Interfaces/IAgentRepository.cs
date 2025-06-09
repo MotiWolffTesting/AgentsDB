@@ -1,9 +1,7 @@
-// Data Access Layer and Database Context for the Eagle Eye system
 using EagleEye.DAL.Models;
 
 namespace EagleEye.DAL.Interfaces
 {
-    // Interface for agent data access
     public interface IAgentRepository
     {
         void AddAgent(Agent agent);

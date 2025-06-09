@@ -6,10 +6,10 @@ namespace EagleEye.DAL.Database
     // Database initializer
     public class DatabaseInitializer
     {
-        private readonly IDatabaseConfig _config;
-        private readonly ILogger _logger;
+        private readonly DatabaseConfig _config;
+        private readonly IAppLogger _logger;
 
-        public DatabaseInitializer(IDatabaseConfig config, ILogger logger)
+        public DatabaseInitializer(DatabaseConfig config, IAppLogger logger)
         {
             _config = config;
             _logger = logger;

@@ -1,13 +1,12 @@
 // Data Access Layer and Database Context for the Eagle Eye system
 using Microsoft.EntityFrameworkCore;
-using EagleEye.DAL.Interfaces;
 using EagleEye.DAL.Database;
 using DotNetEnv;
 
 namespace EagleEye.DAL.Database
 {
     // Database configuration implementation
-    public class DatabaseConfig : IDatabaseConfig
+    public class DatabaseConfig
     {
         private readonly string _connectionString;
 
